@@ -1,0 +1,133 @@
+name: Whisker App Automated Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test type to run'
+        required: true
+        default: 'register'
+        type: choice
+        options:
+          - register
+          - login
+          - both
+
+jobs:
+  test-android:
+    runs-on: macos-14  # macOS for hardware acceleration
+    timeout-minutes: 60
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install prometheus-client psutil
+    
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Accept Android licenses
+      run: yes | sdkmanager --licenses || true
+    
+    - name: Install Android SDK components
+      run: |
+        sdkmanager "platform-tools" "platforms;android-35" "emulator" "system-images;android-35;google_apis;arm64-v8a"
+    
+    - name: Create AVD
+      run: |
+        echo "no" | avdmanager create avd \
+          --force \
+          --name test_emulator \
+          --package "system-images;android-35;google_apis;arm64-v8a" \
+          --device "pixel_6"
+    
+    - name: Install Maestro
+      run: |
+        curl -Ls "https://get.maestro.mobile.dev" | bash
+        echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+    
+    - name: Start Android Emulator
+      run: |
+        emulator -avd test_emulator -no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim &
+        adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+        adb shell settings put global window_animation_scale 0.0
+        adb shell settings put global transition_animation_scale 0.0
+        adb shell settings put global animator_duration_scale 0.0
+        echo "Emulator started successfully"
+    
+    - name: Download Whisker APK
+      env:
+        WHISKER_APK_URL: ${{ secrets.WHISKER_APK_URL }}
+      run: |
+        if [ -n "$WHISKER_APK_URL" ]; then
+          curl -L -o whisker.apk "$WHISKER_APK_URL"
+          adb install whisker.apk
+        else
+          echo "Warning: WHISKER_APK_URL secret not set. Please install app manually or set secret."
+          echo "You can set the APK URL in GitHub repository settings > Secrets > Actions"
+          exit 1
+        fi
+    
+    - name: Verify app installation
+      run: |
+        adb shell pm list packages | grep whisker || echo "App not found"
+        adb shell pm list packages | grep com.whisker.android
+    
+    - name: Run Registration Test
+      if: ${{ github.event.inputs.test_type == 'register' || github.event.inputs.test_type == 'both' || github.event.inputs.test_type == '' }}
+      run: |
+        python3 smart_test_runner.py --register
+      continue-on-error: true
+    
+    - name: Run Login Test
+      if: ${{ github.event.inputs.test_type == 'login' || github.event.inputs.test_type == 'both' }}
+      run: |
+        python3 smart_test_runner.py --login
+      continue-on-error: true
+    
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ github.run_number }}
+        path: |
+          maestro_debug_output/
+          test_credentials.json
+        retention-days: 30
+    
+    - name: Upload screenshots
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: screenshots-${{ github.run_number }}
+        path: |
+          maestro_debug_output/**/*.png
+        retention-days: 14
+    
+    - name: Stop emulator
+      if: always()
+      run: |
+        adb emu kill || true
+
