@@ -1,0 +1,21 @@
+appId: com.whisker.android
+---
+- tapOn: "Enter Password"
+- inputText: "MayaHeart$123"
+- "hideKeyboard"
+- tapOn: "Enter Password"
+- inputText: "MayaHeart$123"
+- "hideKeyboard"
+- tapOn: "Continue"
+- assertVisible: "Welcome \nto Whisker!"
+- tapOn: "Start Your Journey"
+- assertVisible: "Try out your free Whisker+ trial!"
+- tapOn: "Register"
+- tapOn: "First Name"
+- tapOn: "By checking this box. I agree to Whisker's \nTerms&Conditions\n. *"
+- tapOn: "Continue"
+- tapOn:
+    text: "Whisker"
+    index: 0
+- tapOn: "First Name"
+- tapOn: "Last Name"

@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Maestro debug output
+maestro_debug_output/
+
+# Test credentials (sensitive)
+test_credentials.json
+
+# Screenshots
+*.png
+
+# macOS
+.DS_Store
+
+# Virtual environment
+venv/
+.venv/
