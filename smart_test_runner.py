@@ -14,7 +14,8 @@ import time
 from datetime import datetime
 
 CREDENTIALS_FILE = "test_credentials.json"
-PACKAGE_NAME = "com.whisker.android"
+ANDROID_PACKAGE_NAME = "com.whisker.android"
+IOS_BUNDLE_ID = "com.whisker.ios"  # Update this with actual iOS bundle ID
 
 def load_credentials():
     """Load saved test credentials"""
@@ -69,15 +70,17 @@ def generate_random_name():
     last_names = ["User", "Account", "Tester", "Person", "Member"]
     return random.choice(first_names), random.choice(last_names)
 
-def create_register_test(email, password, first_name, last_name):
+def create_register_test(email, password, first_name, last_name, platform='android'):
     """Generate Maestro YAML for registration"""
-    yaml_content = f"""appId: {PACKAGE_NAME}
+    app_id = IOS_BUNDLE_ID if platform == 'ios' else ANDROID_PACKAGE_NAME
+    platform_note = "iOS Simulator" if platform == 'ios' else "Android Emulator (adb shell monkey -p com.whisker.android -c android.intent.category.LAUNCHER 1)"
+    
+    yaml_content = f"""appId: {app_id}
 ---
-# Smart Registration Test
+# Smart Registration Test ({platform.upper()})
 # Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 # Email: {email}
-# Note: Launch app manually before running this test
-# adb shell monkey -p com.whisker.android -c android.intent.category.LAUNCHER 1
+# Platform: {platform_note}
 
 - waitForAnimationToEnd
 - takeScreenshot: "01_app_launched"
@@ -287,7 +290,7 @@ def create_register_test(email, password, first_name, last_name):
 - takeScreenshot: "ui_13_android_home"
 """
     
-    filename = "generated_register_test.yaml"
+    filename = f"generated_register_test_{platform}.yaml"
     with open(filename, 'w') as f:
         f.write(yaml_content)
     
@@ -362,7 +365,7 @@ def create_login_test(email, password):
     
     return filename
 
-def run_maestro_test(yaml_file):
+def run_maestro_test(yaml_file, platform='android'):
     """Run Maestro test and return result"""
     
     # Create debug output directory
@@ -372,46 +375,75 @@ def run_maestro_test(yaml_file):
     # Launch app manually before running test (workaround for TCP forwarding issue)
     print(f"\n🧪 Running Maestro test: {yaml_file}")
     print("-" * 60)
-    print("📱 Preparing Whisker app...")
-    adb_path = os.path.expanduser('~/Library/Android/Sdk/platform-tools/adb')
+    print(f"📱 Preparing Whisker app ({platform.upper()})...")
     
-    # Step 1: Force stop the app if it's running
-    print("  → Checking if app is running...")
-    stop_result = subprocess.run(
-        [adb_path, 'shell', 'am', 'force-stop', PACKAGE_NAME],
-        capture_output=True,
-        text=True
-    )
+    if platform == 'android':
+        adb_path = os.path.expanduser('~/Library/Android/Sdk/platform-tools/adb')
+        package_name = ANDROID_PACKAGE_NAME
+        
+        # Step 1: Force stop the app if it's running
+        print("  → Checking if app is running...")
+        stop_result = subprocess.run(
+            [adb_path, 'shell', 'am', 'force-stop', package_name],
+            capture_output=True,
+            text=True
+        )
+        
+        if stop_result.returncode == 0:
+            print("  ✓ App force-stopped (if it was running)")
+            time.sleep(1)
+        
+        # Step 2: Clear app data to start fresh
+        print("  → Clearing app data...")
+        clear_result = subprocess.run(
+            [adb_path, 'shell', 'pm', 'clear', package_name],
+            capture_output=True,
+            text=True
+        )
+        
+        if clear_result.returncode == 0:
+            print("  ✓ App data cleared")
+            time.sleep(1)
+        
+        # Step 3: Launch the app fresh
+        print("  → Launching app...")
+        launch_result = subprocess.run(
+            [adb_path, 'shell', 'monkey', '-p', package_name, '-c', 'android.intent.category.LAUNCHER', '1'],
+            capture_output=True,
+            text=True
+        )
+        
+        if launch_result.returncode != 0:
+            print(f"  ⚠️  Warning: Failed to launch app via ADB: {launch_result.stderr}")
+        else:
+            print("  ✓ App launched successfully")
+            time.sleep(3)
     
-    if stop_result.returncode == 0:
-        print("  ✓ App force-stopped (if it was running)")
-        time.sleep(1)  # Wait a moment after stopping
-    
-    # Step 2: Clear app data to start fresh
-    print("  → Clearing app data...")
-    clear_result = subprocess.run(
-        [adb_path, 'shell', 'pm', 'clear', PACKAGE_NAME],
-        capture_output=True,
-        text=True
-    )
-    
-    if clear_result.returncode == 0:
+    elif platform == 'ios':
+        bundle_id = IOS_BUNDLE_ID
+        
+        # For iOS, use xcrun simctl to manage the app
+        print("  → Terminating app if running...")
+        subprocess.run(
+            ['xcrun', 'simctl', 'terminate', 'booted', bundle_id],
+            capture_output=True
+        )
+        print("  ✓ App terminated")
+        
+        print("  → Clearing app data...")
+        subprocess.run(
+            ['xcrun', 'simctl', 'privacy', 'booted', 'reset', 'all', bundle_id],
+            capture_output=True
+        )
         print("  ✓ App data cleared")
-        time.sleep(1)
-    
-    # Step 3: Launch the app fresh
-    print("  → Launching app...")
-    launch_result = subprocess.run(
-        [adb_path, 'shell', 'monkey', '-p', PACKAGE_NAME, '-c', 'android.intent.category.LAUNCHER', '1'],
-        capture_output=True,
-        text=True
-    )
-    
-    if launch_result.returncode != 0:
-        print(f"  ⚠️  Warning: Failed to launch app via ADB: {launch_result.stderr}")
-    else:
+        
+        print("  → Launching app...")
+        subprocess.run(
+            ['xcrun', 'simctl', 'launch', 'booted', bundle_id],
+            capture_output=True
+        )
         print("  ✓ App launched successfully")
-        time.sleep(3)  # Give app time to fully start
+        time.sleep(3)
     
     print("✅ App ready for testing!")
     print("\n" + "=" * 80)
@@ -455,10 +487,10 @@ def run_maestro_test(yaml_file):
         print(f"❌ Error running test: {e}")
         return False
 
-def register_new_user():
+def register_new_user(platform='android'):
     """Register a new user with random credentials"""
     print("\n" + "=" * 60)
-    print("🆕 REGISTER NEW USER TEST")
+    print(f"🆕 REGISTER NEW USER TEST ({platform.upper()})")
     print("=" * 60)
     
     # Generate credentials
@@ -471,10 +503,11 @@ def register_new_user():
     print(f"   Last Name:  {last_name}")
     print(f"   Email:      {email}")
     print(f"   Password:   {password}")
+    print(f"   Platform:   {platform.upper()}")
     
     # Create and run test
-    yaml_file = create_register_test(email, password, first_name, last_name)
-    success = run_maestro_test(yaml_file)
+    yaml_file = create_register_test(email, password, first_name, last_name, platform)
+    success = run_maestro_test(yaml_file, platform)
     
     if success:
         # Save credentials
@@ -595,22 +628,38 @@ def main():
     
     if len(sys.argv) < 2:
         print("\nUsage:")
-        print("  python3 smart_test_runner.py --register         # Register new user")
-        print("  python3 smart_test_runner.py --login            # Login with last user")
-        print("  python3 smart_test_runner.py --login <email>    # Login with specific user")
-        print("  python3 smart_test_runner.py --test-all         # Test all registered users")
-        print("  python3 smart_test_runner.py --list             # List registered users")
+        print("  python3 smart_test_runner.py --register [--platform android|ios]  # Register new user")
+        print("  python3 smart_test_runner.py --login [<email>]                      # Login with last/specific user")
+        print("  python3 smart_test_runner.py --test-all                             # Test all registered users")
+        print("  python3 smart_test_runner.py --list                                 # List registered users")
+        print("")
+        print("Platform: android (default) | ios")
         print("")
         sys.exit(1)
     
     command = sys.argv[1]
     
+    # Parse platform argument
+    platform = 'android'  # default
+    if '--platform' in sys.argv:
+        platform_idx = sys.argv.index('--platform')
+        if platform_idx + 1 < len(sys.argv):
+            platform = sys.argv[platform_idx + 1].lower()
+            if platform not in ['android', 'ios']:
+                print(f"\n❌ Invalid platform: {platform}. Use 'android' or 'ios'")
+                sys.exit(1)
+    
     if command == "--register":
-        success = register_new_user()
+        success = register_new_user(platform)
         sys.exit(0 if success else 1)
     
     elif command == "--login":
-        email = sys.argv[2] if len(sys.argv) > 2 else None
+        # Find email argument (skip --platform args)
+        email = None
+        for i, arg in enumerate(sys.argv[2:], 2):
+            if arg not in ['--platform', platform] and not arg.startswith('--'):
+                email = arg
+                break
         success = login_existing_user(email)
         sys.exit(0 if success else 1)
     
