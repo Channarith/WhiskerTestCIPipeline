@@ -1,0 +1,33 @@
+# whisker_advanced_test.yaml
+appId: com.whisker.android
+
+---
+# If there's a login screen
+- launchApp
+- tapOn: "Login"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "password123"
+- tapOn: "Submit|Sign In|Login"
+
+# If there are specific buttons
+- tapOn: "Settings|Profile|Menu"
+- assertVisible: "Account|Preferences"
+
+# Test specific text
+- assertVisible: "Welcome|Home|Dashboard"
+
+# Input text in search
+- tapOn: "Search"
+- inputText: "test query"
+- pressKey: Enter
+
+# Long press
+- longPressOn: "Item|Card"
+
+# Multiple taps
+- repeat:
+    times: 3
+    commands:
+      - tapOn: "Next"
+      - waitForAnimationToEnd

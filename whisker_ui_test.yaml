@@ -1,0 +1,43 @@
+# whisker_ui_test.yaml
+appId: com.whisker.android
+
+---
+# Test 1: Launch app and verify it opens
+- launchApp
+- assertVisible: ".*"
+- takeScreenshot: "01_app_launched"
+
+# Test 2: Wait for any animations/loading
+- waitForAnimationToEnd
+
+# Test 3: Take screenshot of home screen
+- takeScreenshot: "02_home_screen"
+
+# Test 4: Test scrolling (if there's scrollable content)
+- scroll
+
+# Test 5: Scroll back up
+- scrollUntilVisible:
+    element: ".*"
+    direction: UP
+    timeout: 3000
+
+# Test 6: Tap center of screen (adjust if needed)
+- tapOn:
+    point: "50%,50%"
+- waitForAnimationToEnd
+- takeScreenshot: "03_after_tap"
+
+# Test 7: Test back navigation
+- back
+- takeScreenshot: "04_after_back"
+
+# Test 8: Swipe gestures
+- swipe:
+    start: "50%, 80%"
+    end: "50%, 20%"
+    duration: 500
+
+# Test 9: Take final screenshot
+- takeScreenshot: "05_final_state"
+

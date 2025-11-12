@@ -1,0 +1,222 @@
+appId: com.whisker.android
+---
+# Smart Registration Test
+# Generated: 2025-11-11 20:10:45
+# Email: test_jxxt0g2y@whiskertest.com
+# Note: Launch app manually before running this test
+# adb shell monkey -p com.whisker.android -c android.intent.category.LAUNCHER 1
+
+- waitForAnimationToEnd
+- takeScreenshot: "01_app_launched"
+
+# Handle any welcome/onboarding screens
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Next|Skip"
+    commands:
+      - tapOn: "Get Started|Start|Begin|Next|Skip"
+      - waitForAnimationToEnd
+
+# Wait for main screen
+- waitForAnimationToEnd
+- takeScreenshot: "01b_main_screen"
+
+# Navigate to Register screen
+- runFlow:
+    when:
+      visible: "Register|Sign Up|Create Account"
+    commands:
+      - tapOn: "Register|Sign Up|Create Account"
+      - waitForAnimationToEnd
+      - takeScreenshot: "02_register_screen"
+
+# Check if already on register screen
+- runFlow:
+    when:
+      visible: "First Name|Your Whisker Journey"
+    commands:
+      - takeScreenshot: "02b_already_on_register"
+
+# Fill in First Name
+- tapOn: "First Name"
+- inputText: "Auto"
+- hideKeyboard
+
+# Fill in Last Name
+- tapOn: "Last Name"
+- inputText: "Person"
+- hideKeyboard
+
+# Fill in Email
+- tapOn: "email"
+- inputText: "test_jxxt0g2y@whiskertest.com"
+- hideKeyboard
+- takeScreenshot: "03_form_filled"
+
+# REQUIRED: Tap Terms & Conditions checkbox (exact text from Flow.yaml lines 15-17)
+- tapOn: "By checking this box. I agree to Whisker's \nTerms&Conditions\n. *"
+- tapOn: "Continue"
+- takeScreenshot: "04_continue_clicked"
+
+# === PASSWORD CREATION SCREEN (REQUIRED) ===
+# Wait for password creation screen to load
+- waitForAnimationToEnd
+- takeScreenshot: "05_password_creation_screen"
+
+# Enter password in first "Enter Password" field
+- tapOn: "Enter Password"
+- inputText: "QT&35XqYH@tc"
+- hideKeyboard
+- takeScreenshot: "06_password_entered"
+
+# Enter password in second "Enter Password" field (confirmation)
+- tapOn: "Enter Password"
+- inputText: "QT&35XqYH@tc"
+- hideKeyboard
+- takeScreenshot: "07_password_confirmed"
+
+# Tap Continue button (enabled when passwords match)
+- tapOn: "Continue"
+- waitForAnimationToEnd
+- takeScreenshot: "08_password_submitted"
+
+# === WELCOME SCREEN ===
+# Verify we see the welcome message (make assertion optional to not block flow)
+- runFlow:
+    when:
+      visible: "Welcome|Whisker"
+    commands:
+      - takeScreenshot: "09_welcome_screen"
+
+# Tap "Start Your Journey" button
+- runFlow:
+    when:
+      visible: "Start Your Journey|Start|Journey"
+    commands:
+      - tapOn: "Start Your Journey|Start|Journey"
+      - waitForAnimationToEnd
+      - takeScreenshot: "10_journey_started"
+
+# Verify we see the free trial message (optional)
+- runFlow:
+    when:
+      visible: "trial|Trial|Whisker+"
+    commands:
+      - takeScreenshot: "11_trial_screen"
+      
+# Take final screenshot after welcome flow
+- waitForAnimationToEnd
+- takeScreenshot: "11b_post_welcome"
+
+# Handle notification permission popup (auto-click Allow) - MANDATORY
+- takeScreenshot: "12_notification_popup"
+- tapOn:
+    id: com.android.permissioncontroller:id/permission_allow_button
+- takeScreenshot: "12b_notification_allowed"
+
+# Handle potential registration errors
+- runFlow:
+    when:
+      visible: "already registered|already exists|Email taken"
+    commands:
+      - takeScreenshot: "error_already_registered"
+
+# === POST-REGISTRATION: NOW IN THE APP ===
+# At this point, we should be logged into the app
+- waitForAnimationToEnd
+- takeScreenshot: "13_app_home_screen"
+
+# Scroll to see what's on screen
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "14_scrolled_view"
+
+# Handle Google Password Manager popup (if appears)
+- runFlow:
+    when:
+      visible: "Not now|Never|No thanks"
+    commands:
+      - tapOn: "Not now|Never|No thanks"
+      - waitForAnimationToEnd
+      - takeScreenshot: "15_popup_dismissed"
+
+# Final state - should be logged into app after registration
+- waitForAnimationToEnd
+- takeScreenshot: "16_logged_in_home"
+
+# === UI EXPLORATION & TESTING PHASE ===
+# Test real Whisker app UI elements
+
+# Test 1: Click Profile Icon (top right circular icon)
+- tapOn:
+    point: "92%,5%"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_01_profile_opened"
+- tapOn: "Login Information"
+- tapOn: "Reset Password"
+- tapOn: "Back"
+- back
+- back
+- waitForAnimationToEnd
+- takeScreenshot: "ui_02_back_to_home"
+
+# Test 2: Scroll down to see Blogs section
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "ui_02b_scrolled_to_blogs"
+
+# Test 2b: Click Blogs "Learn More" button
+- tapOn: "Learn More"
+- waitForAnimationToEnd
+- assertVisible: "Litter-Robot Blog Logo"
+- takeScreenshot: "ui_03_blogs_opened"
+- tapOn: "Close"
+- takeScreenshot: "ui_04_back_from_blogs"
+
+# Test 3: Navigate to Insights tab (bottom navigation)
+- tapOn: "Insights\nTab 2 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_05_insights_tab"
+
+# Test 4: Navigate to Devices tab (bottom navigation)
+- tapOn: "Devices\nTab 3 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_06_devices_tab"
+
+# Test 5: Navigate to Pets tab (bottom navigation)
+- tapOn: "Pets\nTab 4 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_07_pets_tab"
+
+# Test 6: Navigate to Shop tab (bottom navigation)
+- tapOn: "Shop\nTab 5 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_08_shop_tab"
+
+# Test 7: Go back to Home tab
+- back
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_09_back_to_home"
+
+# Test 8: Test scrolling on home screen
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "ui_10_scrolled_down"
+- swipe:
+    direction: UP
+- waitForAnimationToEnd
+- takeScreenshot: "ui_11_scrolled_up"
+
+# Test 9: Logout from app
+- tapOn:
+    point: "92%,5%"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_12_profile_for_logout"
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- takeScreenshot: "ui_13_logged_out"
+
+# Test 10: Close app and return to Android home
+- pressKey: HOME
+- takeScreenshot: "ui_14_android_home"

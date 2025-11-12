@@ -1,0 +1,18 @@
+# whisker_stress_test.yaml
+appId: com.whisker.android
+
+---
+# Repeat 100 times
+- repeat:
+    times: 100
+    commands:
+      - launchApp
+      - waitForAnimationToEnd
+      - scroll
+      - tapOn:
+          point: "50%,50%"
+      - back
+      - swipe:
+          start: "50%, 80%"
+          end: "50%, 20%"
+      - takeScreenshot: "stress_test_${loop_index}"
