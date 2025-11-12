@@ -1,0 +1,122 @@
+name: Whisker iOS Automated Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test type to run'
+        required: true
+        default: 'register'
+        type: choice
+        options:
+          - register
+          - login
+          - both
+
+jobs:
+  test-ios:
+    runs-on: macos-14
+    timeout-minutes: 60
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install prometheus-client psutil
+    
+    - name: List available iOS Simulators
+      run: xcrun simctl list devices available
+    
+    - name: Create iOS Simulator
+      run: |
+        # Create iPhone 15 simulator
+        xcrun simctl create "iPhone-15-Test" "iPhone 15" "iOS17.0" || true
+        
+        # Boot the simulator
+        UDID=$(xcrun simctl list devices | grep "iPhone-15-Test" | grep -E -o -i "([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})")
+        xcrun simctl boot $UDID || true
+        
+        # Wait for simulator to boot
+        sleep 30
+        
+        echo "Simulator booted: $UDID"
+    
+    - name: Install Maestro
+      run: |
+        curl -Ls "https://get.maestro.mobile.dev" | bash
+        echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+    
+    - name: Download Whisker IPA
+      env:
+        WHISKER_IPA_URL: ${{ secrets.WHISKER_IPA_URL }}
+      run: |
+        if [ -n "$WHISKER_IPA_URL" ]; then
+          curl -L -o whisker.ipa "$WHISKER_IPA_URL"
+          # Install the app
+          UDID=$(xcrun simctl list devices | grep "Booted" | grep -E -o -i "([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})")
+          xcrun simctl install $UDID whisker.ipa
+        else
+          echo "Warning: WHISKER_IPA_URL secret not set. Please install app manually or set secret."
+          echo "You can set the IPA URL in GitHub repository settings > Secrets > Actions"
+          exit 1
+        fi
+    
+    - name: Verify app installation
+      run: |
+        UDID=$(xcrun simctl list devices | grep "Booted" | grep -E -o -i "([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})")
+        xcrun simctl listapps $UDID | grep -i whisker || echo "App not found"
+    
+    - name: Run Registration Test
+      if: ${{ github.event.inputs.test_type == 'register' || github.event.inputs.test_type == 'both' || github.event.inputs.test_type == '' }}
+      run: |
+        python3 smart_test_runner.py --register --platform ios
+      continue-on-error: true
+    
+    - name: Run Login Test
+      if: ${{ github.event.inputs.test_type == 'login' || github.event.inputs.test_type == 'both' }}
+      run: |
+        python3 smart_test_runner.py --login --platform ios
+      continue-on-error: true
+    
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-test-results-${{ github.run_number }}
+        path: |
+          maestro_debug_output/
+          test_credentials.json
+        retention-days: 30
+    
+    - name: Upload screenshots
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-screenshots-${{ github.run_number }}
+        path: |
+          maestro_debug_output/**/*.png
+        retention-days: 14
+    
+    - name: Shutdown simulator
+      if: always()
+      run: |
+        UDID=$(xcrun simctl list devices | grep "iPhone-15-Test" | grep -E -o -i "([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})" | head -1)
+        if [ -n "$UDID" ]; then
+          xcrun simctl shutdown $UDID || true
+        fi
+

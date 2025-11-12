@@ -75,8 +75,12 @@ adb shell pm list packages | grep whisker
 
 ## 🎯 Running Tests
 
-### Register a New User
+### Android Testing
+
+#### Register a New User
 ```bash
+python3 smart_test_runner.py --register --platform android
+# Or simply (android is default):
 python3 smart_test_runner.py --register
 ```
 
@@ -89,7 +93,7 @@ This will:
 - Explore all UI elements (Profile, Blogs, Tabs)
 - Save credentials to `test_credentials.json`
 
-### Login with Saved Credentials
+#### Login with Saved Credentials
 ```bash
 python3 smart_test_runner.py --login
 ```
@@ -98,6 +102,35 @@ This will:
 - Use the last registered credentials
 - Run through login flow
 - Explore UI
+
+### iOS Testing
+
+#### Register a New User on iOS
+```bash
+python3 smart_test_runner.py --register --platform ios
+```
+
+#### Login on iOS
+```bash
+python3 smart_test_runner.py --login --platform ios
+```
+
+**iOS Requirements:**
+- iOS Simulator must be running
+- Whisker app must be installed on the simulator
+- Update `IOS_BUNDLE_ID` in `smart_test_runner.py` with actual bundle ID
+
+**Start iOS Simulator:**
+```bash
+# List available simulators
+xcrun simctl list devices
+
+# Boot a simulator
+xcrun simctl boot "iPhone 15"
+
+# Or open Simulator app
+open -a Simulator
+```
 
 ## 📂 Project Structure
 
