@@ -1,0 +1,55 @@
+{
+  "timestamp": "2025-11-12T21:19:24.922195",
+  "total_screens": 3,
+  "total_interactions": 2,
+  "visited_elements": [
+    "acc:Back",
+    "bounds:[870,289][996,415]",
+    "acc:Insights\nTab 2 of 5",
+    "bounds:[0,63][147,194]",
+    "acc:Pets\nTab 4 of 5",
+    "acc:Enter Access Code",
+    "acc:Get Whisker+",
+    "acc:Home\nTab 1 of 5",
+    "acc:Devices\nTab 3 of 5",
+    "bounds:[487,76][593,181]",
+    "acc:Shop\nTab 5 of 5",
+    "acc:Create a Pet Profile",
+    "acc:Try out your free Whisker+ trial!",
+    "acc:Add a Device",
+    "bounds:[933,63][1059,194]"
+  ],
+  "flows": [
+    {
+      "from_screen": "screen_depth0_1763010923",
+      "action": "bounds:[933,63][1059,194]",
+      "to_screen": "after_tap_bounds_[933,63][1059,194]_1763010970",
+      "depth": 0,
+      "element": {
+        "text": "",
+        "accessibilityText": "",
+        "resource-id": "",
+        "bounds": "[933,63][1059,194]",
+        "class": "android.widget.ImageView",
+        "path": "/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[2]",
+        "identifier": "bounds:[933,63][1059,194]"
+      }
+    },
+    {
+      "from_screen": "screen_depth1_1763010983",
+      "action": "bounds:[870,289][996,415]",
+      "to_screen": "after_tap_bounds_[870,289][996,415]_1763011015",
+      "depth": 1,
+      "element": {
+        "text": "",
+        "accessibilityText": "",
+        "resource-id": "",
+        "bounds": "[870,289][996,415]",
+        "class": "android.widget.Button",
+        "path": "/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[0]/child[1]/child[0]/child[0]/child[0]/child[0]",
+        "identifier": "bounds:[870,289][996,415]"
+      }
+    }
+  ],
+  "screenshots_dir": "ui_exploration_20251112_211508"
+}
