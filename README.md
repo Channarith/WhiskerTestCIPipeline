@@ -15,28 +15,193 @@ Automated testing framework for the Whisker Android app using Maestro and Python
 
 ## 📋 Prerequisites
 
-### Local Testing
+### Platform Support
 
-1. **macOS** (for Android emulator with hardware acceleration)
-2. **Android Studio** with:
+✅ **macOS** - Full support (Android + iOS testing)  
+✅ **Linux** - Android testing supported  
+✅ **Windows** - Android testing supported (WSL2 recommended)
+
+---
+
+### Local Testing Setup
+
+#### 🍎 macOS
+
+1. **Android Studio** with:
    - Android SDK (API 35 recommended)
    - Platform Tools
    - Android Emulator
-3. **Java 17** (OpenJDK):
+   
+2. **Java 17** (OpenJDK):
    ```bash
    brew install openjdk@17
    ```
-4. **Maestro**:
+
+3. **Maestro**:
    ```bash
    curl -Ls "https://get.maestro.mobile.dev" | bash
    ```
-5. **Python 3.11+**:
+
+4. **Python 3.11+**:
    ```bash
    brew install python@3.11
    pip3 install prometheus-client psutil
    ```
 
+5. **Add to PATH** (add to `~/.zshrc` or `~/.bash_profile`):
+   ```bash
+   export PATH="$HOME/Library/Android/Sdk/platform-tools:$PATH"
+   export PATH="$HOME/Library/Android/Sdk/emulator:$PATH"
+   export PATH="$HOME/.maestro/bin:$PATH"
+   ```
+
+#### 🐧 Linux
+
+1. **Android Studio** with SDK:
+   ```bash
+   # Download from https://developer.android.com/studio
+   # Extract and run:
+   cd android-studio/bin
+   ./studio.sh
+   
+   # Install SDK, Platform Tools, and Emulator via SDK Manager
+   ```
+
+2. **Java 17** (OpenJDK):
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update
+   sudo apt install openjdk-17-jdk
+   
+   # Fedora
+   sudo dnf install java-17-openjdk-devel
+   
+   # Arch
+   sudo pacman -S jdk17-openjdk
+   ```
+
+3. **Maestro**:
+   ```bash
+   curl -Ls "https://get.maestro.mobile.dev" | bash
+   ```
+
+4. **Python 3.11+**:
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install python3 python3-pip
+   pip3 install prometheus-client psutil
+   
+   # Fedora
+   sudo dnf install python3 python3-pip
+   pip3 install prometheus-client psutil
+   ```
+
+5. **Enable KVM** (for hardware acceleration):
+   ```bash
+   # Check if KVM is available
+   egrep -c '(vmx|svm)' /proc/cpuinfo
+   # Should return > 0
+   
+   # Install KVM
+   sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+   
+   # Add user to kvm group
+   sudo usermod -aG kvm $USER
+   sudo usermod -aG libvirt $USER
+   
+   # Log out and back in for changes to take effect
+   ```
+
+6. **Add to PATH** (add to `~/.bashrc` or `~/.zshrc`):
+   ```bash
+   export ANDROID_HOME=$HOME/Android/Sdk
+   export PATH=$ANDROID_HOME/platform-tools:$PATH
+   export PATH=$ANDROID_HOME/emulator:$PATH
+   export PATH=$HOME/.maestro/bin:$PATH
+   ```
+
+#### 🪟 Windows
+
+**Option 1: WSL2 (Recommended)**
+
+1. **Install WSL2** with Ubuntu:
+   ```powershell
+   # Run in PowerShell as Administrator
+   wsl --install
+   wsl --set-default-version 2
+   ```
+
+2. **Inside WSL2**, follow the Linux instructions above
+
+3. **Install Android Studio** in Windows (not WSL2)
+   - Download from https://developer.android.com/studio
+   - Install SDK, Platform Tools, and Emulator
+
+4. **Configure ADB Bridge** from WSL2 to Windows:
+   ```bash
+   # In WSL2, connect to Windows ADB server
+   export ADB_SERVER_SOCKET=tcp:localhost:5037
+   ```
+
+**Option 2: Native Windows**
+
+1. **Android Studio**:
+   - Download and install from https://developer.android.com/studio
+   - Install SDK (API 35), Platform Tools, and Emulator via SDK Manager
+
+2. **Java 17** (OpenJDK):
+   - Download from https://adoptium.net/
+   - Install and set `JAVA_HOME` environment variable
+
+3. **Maestro**:
+   ```powershell
+   # Run in PowerShell
+   iwr https://get.maestro.mobile.dev | iex
+   ```
+
+4. **Python 3.11+**:
+   - Download from https://www.python.org/downloads/
+   - During installation, check "Add Python to PATH"
+   ```powershell
+   pip install prometheus-client psutil
+   ```
+
+5. **Add to PATH** (System Environment Variables):
+   ```
+   C:\Users\<YourName>\AppData\Local\Android\Sdk\platform-tools
+   C:\Users\<YourName>\AppData\Local\Android\Sdk\emulator
+   C:\Users\<YourName>\.maestro\bin
+   ```
+
+6. **Run tests using PowerShell or Git Bash**
+
+---
+
+### Hardware Requirements
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| **CPU** | 4 cores | 8+ cores |
+| **RAM** | 8 GB | 16+ GB |
+| **Disk** | 10 GB free | 20+ GB free (SSD preferred) |
+| **Virtualization** | Intel VT-x / AMD-V enabled | Hardware acceleration enabled |
+
 ## 🛠️ Setup
+
+### Platform Compatibility Matrix
+
+| Feature | macOS | Linux | Windows (Native) | Windows (WSL2) |
+|---------|-------|-------|------------------|----------------|
+| Android Emulator | ✅ | ✅ | ✅ | ✅* |
+| iOS Simulator | ✅ | ❌ | ❌ | ❌ |
+| Hardware Acceleration | ✅ | ✅ (KVM) | ✅ (HAXM/WHPX) | ✅ (WSL2 + KVM) |
+| `run_all_tests.sh` | ✅ | ✅ | ⚠️ (Git Bash) | ✅ |
+| Maestro | ✅ | ✅ | ✅ | ✅ |
+| Python Scripts | ✅ | ✅ | ✅ | ✅ |
+
+*WSL2 requires ADB bridge to Windows
+
+---
 
 ### 1. Clone the Repository
 ```bash
@@ -415,7 +580,9 @@ cat test_credentials.json
 
 ## 🚨 Troubleshooting
 
-### Emulator Issues
+### Common Issues (All Platforms)
+
+#### Emulator Issues
 ```bash
 # Kill all emulators
 adb emu kill
@@ -427,7 +594,7 @@ adb kill-server && adb start-server
 adb devices
 ```
 
-### App Installation Issues
+#### App Installation Issues
 ```bash
 # Force stop app
 adb shell am force-stop com.whisker.android
@@ -440,7 +607,7 @@ adb uninstall com.whisker.android
 adb install whisker.apk
 ```
 
-### Maestro Issues
+#### Maestro Issues
 ```bash
 # Check Maestro version
 maestro --version
@@ -450,6 +617,123 @@ curl -Ls "https://get.maestro.mobile.dev" | bash
 
 # View UI hierarchy
 maestro hierarchy
+```
+
+---
+
+### Linux-Specific Issues
+
+#### KVM Permission Denied
+```bash
+# Check KVM permissions
+ls -l /dev/kvm
+
+# Add user to kvm group
+sudo usermod -aG kvm $USER
+
+# Verify group membership
+groups
+
+# Log out and log back in, then verify
+id | grep kvm
+```
+
+#### Emulator Won't Start
+```bash
+# Check if hardware acceleration is available
+egrep -c '(vmx|svm)' /proc/cpuinfo
+
+# Install necessary packages
+sudo apt install qemu-kvm libvirt-daemon-system
+
+# Check BIOS/UEFI settings - ensure virtualization is enabled
+```
+
+#### ADB Not Found
+```bash
+# Add Android SDK to PATH permanently
+echo 'export ANDROID_HOME=$HOME/Android/Sdk' >> ~/.bashrc
+echo 'export PATH=$ANDROID_HOME/platform-tools:$PATH' >> ~/.bashrc
+echo 'export PATH=$ANDROID_HOME/emulator:$PATH' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+### Windows-Specific Issues
+
+#### WSL2 ADB Connection
+```bash
+# In WSL2, connect to Windows ADB server
+export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
+
+# In Windows, ensure ADB server is running
+adb start-server
+
+# In WSL2, verify connection
+adb devices
+```
+
+#### Maestro Not Found (PowerShell)
+```powershell
+# Add Maestro to PATH
+$env:Path += ";$env:USERPROFILE\.maestro\bin"
+
+# Make permanent (run as Administrator)
+[System.Environment]::SetEnvironmentVariable(
+    "Path",
+    [System.Environment]::GetEnvironmentVariable("Path", "User") + ";$env:USERPROFILE\.maestro\bin",
+    "User"
+)
+```
+
+#### Script Execution Policy Error
+```powershell
+# If you get "cannot be loaded because running scripts is disabled"
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+#### HAXM Installation Failed
+```
+Intel HAXM is not supported on Windows 11 with AMD CPUs.
+
+Solution:
+1. Enable Windows Hypervisor Platform (Settings → Apps → Optional Features → More Windows Features)
+2. Use Android Emulator with WHPX (Windows Hypervisor Platform)
+3. Or use WSL2 with KVM support
+```
+
+#### Git Bash Script Compatibility
+```bash
+# If run_all_tests.sh fails in Git Bash
+# Use WSL2 instead, or convert line endings
+dos2unix run_all_tests.sh
+
+# Or install dos2unix alternative
+sed -i 's/\r$//' run_all_tests.sh
+```
+
+---
+
+### macOS-Specific Issues
+
+#### "Cannot Open Simulator" Error
+```bash
+# Reset Simulator
+xcrun simctl shutdown all
+xcrun simctl erase all
+
+# Restart Xcode command line tools
+sudo xcode-select --reset
+```
+
+#### M1/M2 Mac ARM64 Issues
+```bash
+# Some Android emulators may require Rosetta 2
+softwareupdate --install-rosetta
+
+# Use ARM64 system images in Android Studio
+# Look for images labeled "arm64-v8a"
 ```
 
 ## 🤝 Contributing
