@@ -1,0 +1,283 @@
+appId: com.whisker.android
+---
+# Smart Registration Test
+# Generated: 2025-11-11 10:11:13
+# Email: test_0rpnyxnl@whiskertest.com
+# Note: Launch app manually before running this test
+# adb shell monkey -p com.whisker.android -c android.intent.category.LAUNCHER 1
+
+- waitForAnimationToEnd
+- takeScreenshot: "01_app_launched"
+
+# Navigate to Register screen
+- runFlow:
+    when:
+      visible: "Register|Sign Up|Create Account"
+    commands:
+      - tapOn: "Register|Sign Up|Create Account"
+      - waitForAnimationToEnd
+      - takeScreenshot: "02_register_screen"
+
+# Check if already on register screen
+- runFlow:
+    when:
+      visible: "First Name|Your Whisker Journey"
+    commands:
+      - takeScreenshot: "02b_already_on_register"
+
+# Fill in First Name
+- tapOn: "First Name"
+- inputText: "Trial"
+- hideKeyboard
+
+# Fill in Last Name
+- tapOn: "Last Name"
+- inputText: "Member"
+- hideKeyboard
+
+# Fill in Email
+- tapOn: "email"
+- inputText: "test_0rpnyxnl@whiskertest.com"
+- hideKeyboard
+- takeScreenshot: "03_form_filled"
+
+# Ensure keyboard is completely hidden
+- hideKeyboard
+- waitForAnimationToEnd
+- takeScreenshot: "03b_keyboard_hidden"
+
+# Scroll down to reveal Terms & Conditions
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "03c_after_first_scroll"
+
+# REQUIRED: Tap Terms & Conditions checkbox (by coordinates near bottom of visible form)
+- tapOn:
+    point: "50%,70%"
+- waitForAnimationToEnd
+- takeScreenshot: "03d_tapped_terms_area"
+
+# Tap Continue button (should now be yellow/enabled after checking Terms)
+- tapOn:
+    point: "50%,85%"
+- waitForAnimationToEnd
+- takeScreenshot: "04_continue_clicked"
+
+# === PASSWORD CREATION SCREEN (REQUIRED) ===
+# We MUST see the password creation screen with rules
+- waitForAnimationToEnd
+- takeScreenshot: "05_password_creation_screen"
+
+# Verify password rules are visible (REQUIRED - test fails if not found)
+- assertVisible: "capital letter|8 characters|number|special"
+
+# Enter password in first field (tap upper password area)
+- tapOn:
+    point: "50%,45%"
+- inputText: "DGW08kc93CMK"
+- hideKeyboard
+- takeScreenshot: "06_password_entered"
+
+# Enter password in confirm field (tap lower password area)
+- tapOn:
+    point: "50%,60%"
+- inputText: "DGW08kc93CMK"
+- hideKeyboard
+- takeScreenshot: "07_password_confirmed"
+
+# Click Continue (should now be yellow/enabled since passwords match)
+- tapOn:
+    point: "50%,80%"
+- waitForAnimationToEnd
+- takeScreenshot: "08_password_submitted"
+
+# Handle potential registration errors
+- runFlow:
+    when:
+      visible: "already registered|already exists|Email taken"
+    commands:
+      - takeScreenshot: "error_already_registered"
+
+# === POST-REGISTRATION: MAY AUTO-LOGIN OR SHOW LOGIN SCREEN ===
+- waitForAnimationToEnd
+- takeScreenshot: "09_registration_complete"
+
+# Scroll to see what's on current screen
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "10_scrolled_view"
+
+# If there's a "Login" button/link, click it
+- runFlow:
+    when:
+      visible: "Login|Sign in|Sign In"
+    commands:
+      - tapOn: "Login|Sign in|Sign In"
+      - waitForAnimationToEnd
+      - takeScreenshot: "11_navigated_to_login"
+
+# Wait for screen to load
+- waitForAnimationToEnd
+- takeScreenshot: "12_current_screen"
+
+# Enter email in login screen (tap upper input area)
+- tapOn:
+    point: "50%,40%"
+- inputText: "test_0rpnyxnl@whiskertest.com"
+- hideKeyboard
+- takeScreenshot: "13_login_email_entered"
+
+# Enter password in login screen (tap lower input area)  
+- tapOn:
+    point: "50%,55%"
+- inputText: "DGW08kc93CMK"
+- hideKeyboard
+- takeScreenshot: "14_login_password_entered"
+
+# Click Login/Continue button
+- tapOn:
+    point: "50%,75%"
+- waitForAnimationToEnd
+- takeScreenshot: "15_login_submitted"
+
+# Handle Google Password Manager popup
+- runFlow:
+    when:
+      visible: "Not now|Never|No thanks"
+    commands:
+      - tapOn: "Not now|Never|No thanks"
+      - waitForAnimationToEnd
+      - takeScreenshot: "16_popup_dismissed"
+
+# Final state - should be logged into app
+- waitForAnimationToEnd
+- takeScreenshot: "17_logged_in_home"
+
+# === UI EXPLORATION & TESTING PHASE ===
+# Systematically explore and test all UI widgets
+
+# Test 1: Check for menu/hamburger icon
+- runFlow:
+    when:
+      visible: "Menu|☰|≡"
+    commands:
+      - takeScreenshot: "ui_01_menu_found"
+      - tapOn: "Menu|☰|≡"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_02_menu_opened"
+      - back
+      - waitForAnimationToEnd
+
+# Test 2: Test scrolling functionality
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "ui_03_scrolled_down"
+- swipe:
+    direction: UP
+- waitForAnimationToEnd  
+- takeScreenshot: "ui_04_scrolled_up"
+
+# Test 3: Navigate to Profile/Account
+- runFlow:
+    when:
+      visible: "Profile|Account|My Account|User"
+    commands:
+      - tapOn: "Profile|Account|My Account|User"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_05_profile_opened"
+      - scroll
+      - takeScreenshot: "ui_06_profile_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# Test 4: Navigate to Settings
+- runFlow:
+    when:
+      visible: "Settings|Preferences|Options"
+    commands:
+      - tapOn: "Settings|Preferences|Options"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_07_settings_opened"
+      - scroll
+      - takeScreenshot: "ui_08_settings_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# Test 5: Explore Shop/Products section
+- runFlow:
+    when:
+      visible: "Shop|Products|Browse|Store|Catalog"
+    commands:
+      - tapOn: "Shop|Products|Browse|Store|Catalog"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_09_shop_opened"
+      - scroll
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_10_shop_products_visible"
+      - scroll
+      - takeScreenshot: "ui_11_shop_more_products"
+      - back
+      - waitForAnimationToEnd
+
+# Test 6: Check Cart/Basket
+- runFlow:
+    when:
+      visible: "Cart|Basket|🛒|Checkout"
+    commands:
+      - tapOn: "Cart|Basket|🛒|Checkout"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_12_cart_opened"
+      - back
+      - waitForAnimationToEnd
+
+# Test 7: Test Search functionality
+- runFlow:
+    when:
+      visible: "Search|🔍"
+    commands:
+      - tapOn: "Search|🔍"
+      - waitForAnimationToEnd
+      - inputText: "cat"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_13_search_cat"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      - back
+      - waitForAnimationToEnd
+
+# Test 8: Check Notifications
+- runFlow:
+    when:
+      visible: "Notifications|🔔|Alerts|Messages"
+    commands:
+      - tapOn: "Notifications|🔔|Alerts|Messages"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_14_notifications_opened"
+      - back
+      - waitForAnimationToEnd
+
+# Test 9: Look for and test any buttons/CTAs on home screen
+- runFlow:
+    when:
+      visible: "Get Started|Shop Now|Browse|Explore"
+    commands:
+      - takeScreenshot: "ui_15_cta_found"
+      - tapOn: "Get Started|Shop Now|Browse|Explore"
+      - waitForAnimationToEnd
+      - takeScreenshot: "ui_16_cta_clicked"
+      - back
+      - waitForAnimationToEnd
+
+# Test 10: Test horizontal swipe gestures
+- swipe:
+    direction: LEFT
+- waitForAnimationToEnd
+- takeScreenshot: "ui_17_swiped_left"
+
+- swipe:
+    direction: RIGHT
+- waitForAnimationToEnd
+- takeScreenshot: "ui_18_swiped_right"
+
+# Final comprehensive screenshot
+- takeScreenshot: "ui_19_exploration_complete"

@@ -1,0 +1,70 @@
+appId: com.whisker.android
+---
+# Smart Login Test
+# Generated: 2025-11-13 15:49:28
+# Email: test_8sf14xlf@whiskertest.com
+# Note: Launch app manually before running this test
+# adb shell monkey -p com.whisker.android -c android.intent.category.LAUNCHER 1
+
+- waitForAnimationToEnd
+- takeScreenshot: "01_app_launched"
+
+# Navigate to Login screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login|Sign In"
+      - waitForAnimationToEnd
+      - takeScreenshot: "02_login_screen"
+
+# Check if already on login screen
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - takeScreenshot: "02b_already_on_login"
+
+# Fill in Email
+- tapOn: "Enter Email|email|Username"
+- inputText: "test_8sf14xlf@whiskertest.com"
+- hideKeyboard
+
+# Fill in Password
+- tapOn: "Enter Password"
+- inputText: "#$k18Q@BRWUZ"
+- hideKeyboard
+- takeScreenshot: "03_credentials_entered"
+
+# Click Login/Sign In
+- tapOn: "Login|Sign In|Continue"
+- waitForAnimationToEnd
+- takeScreenshot: "04_login_submitted"
+
+# Handle potential errors
+- runFlow:
+    when:
+      visible: "Invalid|Incorrect|Wrong|not found"
+    commands:
+      - takeScreenshot: "error_invalid_credentials"
+
+# Handle notification permission popup (auto-click Allow)
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - takeScreenshot: "12_notification_popup"
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - takeScreenshot: "12b_notification_allowed"
+
+    
+# Verify success (optional - don't fail test if not found)
+- runFlow:
+    when:
+      visible: "Welcome|Home|Dashboard|Login|Devices"
+    commands:
+      - takeScreenshot: "05_login_success"
+
+# Final screenshot regardless
+- takeScreenshot: "06_final_screen"

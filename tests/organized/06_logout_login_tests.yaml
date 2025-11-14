@@ -1,0 +1,260 @@
+appId: com.whisker.android
+---
+# LOGOUT & FRESH LOGIN TESTS
+# Generated: 2025-11-12 22:39:08
+# Tests: Complete logout flow, Fresh login with saved credentials
+
+# ============================================================
+# INITIALIZATION - Clean State & Automatic Login
+# ============================================================
+# Ensures consistent starting point: clear state, launch app, auto-login
+
+- clearState: com.whisker.android
+- launchApp: com.whisker.android
+- waitForAnimationToEnd
+- takeScreenshot: "00_app_launched"
+
+# Handle onboarding/welcome screens (if first launch)
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Welcome"
+    commands:
+      - tapOn: "Get Started"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00a_onboarding_skipped"
+
+# Navigate to Login if we see Login/Register screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00b_login_screen"
+
+# Perform automatic login if login screen is visible
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - tapOn: "Enter Email"
+      #- inputText: "test_h954605d@whiskertest.com"
+      - inputText: {SAVED_EMAIL}      
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Enter Password"
+      #- inputText: "1IE0cyaSG6#y"
+      - inputText: {SAVED_PASSWORD}
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00c_login_submitted"
+      
+      # Handle Google Password Manager (tap "Not now" / deny)
+      - runFlow:
+          when:
+            visible: "Save|Not now"
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: com.android.permissioncontroller:id/permission_deny_button
+                commands:
+                  - tapOn:
+                      id: com.android.permissioncontroller:id/permission_deny_button
+                  - waitForAnimationToEnd
+
+# Handle notification permission popup (tap "Allow")
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - waitForAnimationToEnd
+      - takeScreenshot: "00d_notifications_allowed"
+
+# Wait for home screen to fully load
+- waitForAnimationToEnd
+- takeScreenshot: "00e_ready_home_screen"
+
+
+# ============================================================
+# START OF ACTUAL TEST
+# ============================================================
+
+- takeScreenshot: "logout_00_start"
+
+# ============================================================
+# TEST 1: Navigate to Profile
+# ============================================================
+- tapOn:
+    point: "92%,5%"
+- waitForAnimationToEnd
+- takeScreenshot: "logout_01_profile_menu"
+
+# ============================================================
+# TEST 2: Click on Person's Name/Email (with ">")
+# ============================================================
+# This should be the top option with name, email, and ">" symbol
+- tapOn:
+    point: "50%,15%"
+- waitForAnimationToEnd
+- takeScreenshot: "logout_02_account_details"
+
+# Scroll to see logout button
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "logout_03_scrolled"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "logout_04_scrolled_more"
+
+# ============================================================
+# TEST 3: Tap Orange "Log Out" Button
+# ============================================================
+- runFlow:
+    when:
+      visible: "Log Out|Logout|LOGOUT"
+    commands:
+      - takeScreenshot: "logout_05_found_logout_button"
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - takeScreenshot: "logout_06_logout_clicked"
+
+# Handle confirmation if any
+- runFlow:
+    when:
+      visible: "Are you sure you want to Log Out?"
+    commands:
+      - takeScreenshot: "logout_07_confirmation"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 4: Verify Logged Out State
+# ============================================================
+- waitForAnimationToEnd
+- takeScreenshot: "logout_08_logged_out"
+
+# Should see login/register screen
+- assertVisible: "Login|Sign In|Register"
+- takeScreenshot: "logout_09_login_screen_visible"
+
+# ============================================================
+# TEST 5: Fresh Login with Saved Credentials
+# ============================================================
+# Navigate to Login
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "login_01_login_screen"
+
+# Wait for login form
+- waitForAnimationToEnd
+- takeScreenshot: "login_02_ready_for_input"
+
+# Enter Email (using last saved credential from test_credentials.json)
+# Note: Replace with actual email from saved credentials
+- runFlow:
+    when:
+      visible: "Enter Email|Username"
+    commands:
+      - tapOn: "Enter Email"
+      - inputText: "{SAVED_EMAIL}"
+      - hideKeyboard
+      - takeScreenshot: "login_03_email_entered"
+
+# Enter Password
+- runFlow:
+    when:
+      visible: "Enter Password"
+    commands:
+      - tapOn: "Enter Password"
+      - inputText: "{SAVED_PASSWORD}"
+      - hideKeyboard
+      - takeScreenshot: "login_04_password_entered"
+
+# Click Login Button
+- runFlow:
+    when:
+      visible: "Login|Sign In|Continue"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "login_05_login_clicked"
+
+# ============================================================
+# TEST 6: Handle Post-Login Screens
+# ============================================================
+# Google Password Manager popup
+- runFlow:
+    when:
+      visible: "Save|Not now|Never"
+    commands:
+      - takeScreenshot: "login_06_password_manager"
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_deny_button
+      - waitForAnimationToEnd
+
+# Any welcome back screens
+- runFlow:
+    when:
+      visible: "Welcome Back|Continue"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 7: Verify Successful Login
+# ============================================================
+- waitForAnimationToEnd
+- takeScreenshot: "login_07_logged_in_home"
+
+# Verify we're on home screen
+- assertVisible: "Devices"
+- takeScreenshot: "login_08_verify_home"
+
+# Verify profile accessible
+- tapOn:
+    point: "92%,5%"
+- waitForAnimationToEnd
+- takeScreenshot: "login_09_profile_accessible"
+- back
+- waitForAnimationToEnd
+
+# ============================================================
+# CLEANUP - Return Home & Logout
+# ============================================================
+
+# Return to home
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "99_back_to_home"
+
+# Logout
+- runFlow:
+    when:
+      visible: "Devices"
+    commands:
+      - tapOn: 
+          point: "92%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,15%"
+      - waitForAnimationToEnd
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Are you sure you want to Log Out?"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Login|Sign In"
+      - takeScreenshot: "99_logged_out"

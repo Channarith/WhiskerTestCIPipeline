@@ -1,0 +1,463 @@
+appId: com.whisker.android
+---
+# PET MANAGEMENT TESTS
+# Generated: 2025-11-12 22:39:08
+# Tests: Add Dog, Add Cat, Pet profiles, Pet settings
+
+# ============================================================
+# INITIALIZATION - Clean State & Automatic Login
+# ============================================================
+# Ensures consistent starting point: clear state, launch app, auto-login
+
+- clearState: com.whisker.android
+- launchApp: com.whisker.android
+- waitForAnimationToEnd
+- takeScreenshot: "00_app_launched"
+
+# Handle onboarding/welcome screens (if first launch)
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Welcome"
+    commands:
+      - tapOn: "Get Started"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00a_onboarding_skipped"
+
+# Navigate to Login if we see Login/Register screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00b_login_screen"
+
+# Perform automatic login if login screen is visible
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - tapOn: "Enter Email"
+      - inputText: "test_h954605d@whiskertest.com"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Enter Password"
+      - inputText: "1IE0cyaSG6#y"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00c_login_submitted"
+      
+      # Handle Google Password Manager (tap "Not now" / deny)
+      - runFlow:
+          when:
+            visible: "Save|Not now"
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: com.android.permissioncontroller:id/permission_deny_button
+                commands:
+                  - tapOn:
+                      id: com.android.permissioncontroller:id/permission_deny_button
+                  - waitForAnimationToEnd
+
+# Handle notification permission popup (tap "Allow")
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - waitForAnimationToEnd
+      - takeScreenshot: "00d_notifications_allowed"
+
+# Wait for home screen to fully load
+- waitForAnimationToEnd
+- takeScreenshot: "00e_ready_home_screen"
+
+
+# ============================================================
+# START OF ACTUAL TEST
+# ============================================================
+
+- takeScreenshot: "pets_00_home_start"
+
+# ============================================================
+# TEST 1: Navigate to Pets Tab
+# ============================================================
+- tapOn: "Pets\nTab 4 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "pets_01_tab_opened"
+
+# ============================================================
+# TEST 2: Create Pet Profile (Dog)
+# ============================================================
+- tapOn: "Add a Pet +"
+- waitForAnimationToEnd
+- takeScreenshot: "pets_02_create_profile_screen"
+
+# Select Dog
+- runFlow:
+    when:
+      visible: "Dog|dog"
+    commands:
+      - tapOn: "Dog"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_03_dog_selected"
+
+# Enter pet details
+- runFlow:
+    when:
+      visible: "Woof!"
+    commands:
+      - tapOn:
+          point: "50%, 40%"
+      - inputText: "TestDog"
+      - hideKeyboard
+      - takeScreenshot: "pets_04_dog_name_entered"
+
+# Scroll and continue with dog setup
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "pets_05_dog_form_scrolled"
+
+# Birthdate and Weight
+- runFlow:
+    when:
+      visible: "Estimated Weight"
+    commands:
+      - tapOn: "Female"
+      - tapOn:
+          point: "48%,58%"
+      - tapOn: "Switch to input"
+      - tapOn:
+          point: "50%,54%"
+      - eraseText
+      - inputText: "01/01/2000"
+      - hideKeyboard
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_06_birthdate_entered"
+      - tapOn: "Estimated Weight"
+      - inputText: "10.00 lbs"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_07_weight_entered"
+# Continue or Save
+- runFlow:
+    when:
+      visible: "Continue|Next|Save"
+    commands:
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_07_dog_created"
+
+# Go through any additional setup screens
+- waitForAnimationToEnd
+- takeScreenshot: "pets_08_dog_setup_complete"
+
+# Return to pets list
+- runFlow:
+    when:
+      visible: "Say Cheese!"
+    commands:
+      - tapOn: "Upload Photo"
+      - waitForAnimationToEnd
+# Return to pets list
+- runFlow:
+    when:
+      visible: "Albums"
+    commands:
+      - tapOn: "More options"
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "com.google.android.providers.media.module:id/content"
+          index: 0
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,33%"
+      - waitForAnimationToEnd
+      - assertVisible: "Reset"
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_09_google_photos_reset"
+      - assertVisible: "Adorable!"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - assertVisible: "Purrfect!"
+      - tapOn: "Search for your breed..."
+      - inputText: "Mutt"
+      - tapOn: "Mutt"
+      - waitForAnimationToEnd
+      - tapOn: "Adoption Day (Optional)"
+      - tapOn: "Switch to input"
+      - tapOn:
+          point: "50%,54%"
+      - eraseText
+      - inputText: "01/01/2010"
+      - hideKeyboard
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_10_adoption_day_entered"
+      - tapOn: "Select Origin..."
+      - inputText: "Shelter"
+      - tapOn: "Shelter"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_11_origin_selected"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_12_next_button"
+      - assertVisible: "Pawsome!"
+      - tapOn: "Yes"
+      - tapOn: "My dog is healthy."
+      - tapOn: "Search for concerns..."
+      - inputText: "Obesity"
+      - tapOn: "Obesity"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_13_concerns_selected"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_14_next_button"
+      - assertVisible: "Got it!"
+      - tapOn: "Both"
+      - tapOn: "Next"
+      - tapOn: "Both"
+      - tapOn: "Select all that apply"
+      - inputText: "Hunter"
+      - hideKeyboard
+      - tapOn: "Hunter"
+      - waitForAnimationToEnd
+      - tapOn: "Next"
+      #- tapOn: "Select all that apply"
+      #- inputText: "Vocal"
+      #- tapOn: "Vocal"
+      #- tapOn: "Select all that apply"
+      #- inputText: "Shy"
+      #- tapOn: "Shy"
+      #- tapOn: "Next"
+      - waitForAnimationToEnd
+      - assertVisible: "Welcome to the Whisker family,"
+      - tapOn: "View my dashboard"
+      - assertVisible: "TestDog"
+# ============================================================
+# TEST 3: Create Pet Profile (Cat)
+# ============================================================
+- runFlow:
+    when:
+      visible: "Add a Pet"
+    commands:
+      - tapOn: "Add a Pet"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_09_create_cat_screen"
+
+# Select Cat
+- runFlow:
+    when:
+      visible: "Cat|cat"
+    commands:
+      - tapOn: "Cat"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_10_cat_selected"
+
+# Enter cat details
+- runFlow:
+    when:
+      visible: "Meow!"
+    commands:
+      - tapOn:
+          point: "50%, 40%"
+      - inputText: "TestCat"
+      - hideKeyboard
+      - takeScreenshot: "pets_11_cat_name_entered"
+
+# Scroll and continue with dog setup
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "pets_12_cat_form_scrolled"
+
+# Birthdate and Weight
+- runFlow:
+    when:
+      visible: "Estimated Weight"
+    commands:
+      - tapOn: "Male"
+      - tapOn:
+          point: "48%,58%"
+      - tapOn: "Switch to input"
+      - tapOn:
+          point: "50%,54%"
+      - eraseText
+      - inputText: "01/01/2000"
+      - hideKeyboard
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_13_birthdate_entered"
+      - tapOn: "Estimated Weight"
+      - inputText: "5.00 lbs"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_14_weight_entered"
+# Continue or Save
+- runFlow:
+    when:
+      visible: "Continue|Next|Save"
+    commands:
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_07_dog_created"
+
+# Go through any additional setup screens
+- waitForAnimationToEnd
+- takeScreenshot: "pets_08_dog_setup_complete"
+
+# Return to pets list
+- runFlow:
+    when:
+      visible: "Say Cheese!"
+    commands:
+      - tapOn: "Upload Photo"
+      - waitForAnimationToEnd
+# Return to pets list
+- runFlow:
+    when:
+      visible: "Albums"
+    commands:
+      - tapOn: "More options"
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "com.google.android.providers.media.module:id/content"
+          index: 0
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "20%,33%"
+      - waitForAnimationToEnd
+      - assertVisible: "Reset"
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_15_google_photos_reset"
+      - assertVisible: "Adorable!"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - assertVisible: "Purrfect!"
+      - tapOn: "Search for your breed..."
+      - inputText: "Siamese"
+      - tapOn: "Siamese"
+      - waitForAnimationToEnd
+      - tapOn: "Adoption Day (Optional)"
+      - tapOn: "Switch to input"
+      - tapOn:
+          point: "50%,54%"
+      - eraseText
+      - inputText: "01/01/2010"
+      - hideKeyboard
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_16_adoption_day_entered"
+      - tapOn: "Select Origin..."
+      - inputText: "Shelter"
+      - tapOn: "Shelter"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_17_origin_selected"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_18_next_button"
+      - assertVisible: "Pawsome!"
+      - tapOn: "Yes"
+      - tapOn: "My cat is healthy."
+      - tapOn: "Search for concerns..."
+      - inputText: "Obesity"
+      - tapOn: "Obesity"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_19_concerns_selected"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_20_next_button"
+      - assertVisible: "Got it!"
+      - tapOn: "Both"
+      - scroll
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - tapOn: "Both"
+      - scroll
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - assertVisible: "Welcome to the Whisker family,"
+      - tapOn: "View my dashboard"
+      - assertVisible: "TestCat"
+
+
+# ============================================================
+# TEST 4: Explore Pet Options
+# ============================================================
+- waitForAnimationToEnd
+- takeScreenshot: "pets_14_pets_list"
+
+# Tap on first pet
+- runFlow:
+    when:
+      visible: "TestDog|TestCat"
+    commands:
+      - tapOn:
+          point: "50%,25%"
+      - waitForAnimationToEnd
+      - takeScreenshot: "pets_21_pet_details"
+      - scroll
+      - takeScreenshot: "pets_22_pet_details_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# Go back. Clean up by removing the 2 profiles.
+- runFlow:
+    when:
+      visible: "TestDog|TestCat"
+    commands:
+      - tapOn: "Show menu"
+      - tapOn: "Remove Profile"
+      - waitForAnimationToEnd
+      - tapOn: "Remove Profile"
+      - waitForAnimationToEnd
+      - tapOn: "Yes, remove"
+      - waitForAnimationToEnd
+      - assertNotVisible: "TestCat"
+      - assertVisible: "TestDog"
+      - tapOn: "Show menu"
+      - tapOn: "Remove Profile"
+      - waitForAnimationToEnd
+      - tapOn: "Remove Profile"
+      - waitForAnimationToEnd
+      - tapOn: "Yes, remove"
+      - waitForAnimationToEnd
+      - assertNotVisible: "TestDog"
+
+# ============================================================
+# CLEANUP - Return Home & Logout
+# ============================================================
+
+# Return to home
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "99_back_to_home"
+
+# Logout
+- runFlow:
+    when:
+      visible: "Devices"
+    commands:
+      - tapOn: 
+          point: "92%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,15%"
+      - waitForAnimationToEnd
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Are you sure you want to Log Out?"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Login|Sign In"
+      - takeScreenshot: "99_logged_out"

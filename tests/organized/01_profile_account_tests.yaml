@@ -1,0 +1,226 @@
+appId: com.whisker.android
+---
+# PROFILE & ACCOUNT MANAGEMENT TESTS
+# Generated: 2025-11-12 22:39:08
+# Tests: Profile info, Login info, Addresses, Payment methods, Settings
+
+# ============================================================
+# INITIALIZATION - Clean State & Automatic Login
+# ============================================================
+# Ensures consistent starting point: clear state, launch app, auto-login
+
+- clearState: com.whisker.android
+- launchApp: com.whisker.android
+- waitForAnimationToEnd
+- takeScreenshot: "00_app_launched"
+
+# Handle onboarding/welcome screens (if first launch)
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Welcome"
+    commands:
+      - tapOn: "Get Started"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00a_onboarding_skipped"
+
+# Navigate to Login if we see Login/Register screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00b_login_screen"
+
+# Perform automatic login if login screen is visible
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - tapOn: "Enter Email"
+      - inputText: "test_h954605d@whiskertest.com"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Enter Password"
+      - inputText: "1IE0cyaSG6#y"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00c_login_submitted"
+      
+      # Handle Google Password Manager (tap "Not now" / deny)
+      - runFlow:
+          when:
+            visible: "Save|Not now"
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: com.android.permissioncontroller:id/permission_deny_button
+                commands:
+                  - tapOn:
+                      id: com.android.permissioncontroller:id/permission_deny_button
+                  - waitForAnimationToEnd
+
+# Handle notification permission popup (tap "Allow")
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - waitForAnimationToEnd
+      - takeScreenshot: "00d_notifications_allowed"
+
+# Wait for home screen to fully load
+- waitForAnimationToEnd
+- takeScreenshot: "00e_ready_home_screen"
+
+
+# ============================================================
+# START OF ACTUAL TEST
+# ============================================================
+
+- takeScreenshot: "profile_00_home_start"
+
+# ============================================================
+# TEST 1: Access Profile from Home
+# ============================================================
+- tapOn:
+    point: "92%,5%"
+- waitForAnimationToEnd
+- takeScreenshot: "profile_01_menu_opened"
+
+# ============================================================
+# TEST 2: Navigate to Login Information
+# ============================================================
+- tapOn: "Login Information"
+- waitForAnimationToEnd
+- takeScreenshot: "profile_02_login_info"
+
+# Explore login information page
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "profile_03_login_info_scrolled"
+
+# ============================================================
+# TEST 3: Check Reset Password
+# ============================================================
+- tapOn: "Reset Password"
+- waitForAnimationToEnd
+- takeScreenshot: "profile_04_reset_password"
+- tapOn: "Back"
+- waitForAnimationToEnd
+
+# Go back to profile menu
+- back
+- waitForAnimationToEnd
+- takeScreenshot: "profile_05_back_to_menu"
+
+# ============================================================
+# TEST 4: Navigate to Addresses
+# ============================================================
+- runFlow:
+    when:
+      visible: "Addresses|Address"
+    commands:
+      - tapOn: "Addresses"
+      - waitForAnimationToEnd
+      - takeScreenshot: "profile_06_addresses"
+      - scroll
+      - takeScreenshot: "profile_06b_addresses_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 5: Navigate to Payment Methods
+# ============================================================
+- runFlow:
+    when:
+      visible: "Payment|Payment Methods"
+    commands:
+      - tapOn: "Payment Methods"
+      - waitForAnimationToEnd
+      - takeScreenshot: "profile_07_payment_methods"
+      - scroll
+      - takeScreenshot: "profile_07b_payment_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 6: Scroll through all profile options
+# ============================================================
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "profile_08_scroll_1"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "profile_09_scroll_2"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "profile_10_scroll_3"
+
+# ============================================================
+# TEST 7: Check Settings
+# ============================================================
+- runFlow:
+    when:
+      visible: "Settings|Preferences"
+    commands:
+      - tapOn: "Settings"
+      - waitForAnimationToEnd
+      - takeScreenshot: "profile_11_settings"
+      - scroll
+      - takeScreenshot: "profile_11b_settings_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 8: Check Support/Help
+# ============================================================
+- runFlow:
+    when:
+      visible: "Support|Help|Contact"
+    commands:
+      - tapOn: "Support"
+      - waitForAnimationToEnd
+      - takeScreenshot: "profile_12_support"
+      - scroll
+      - takeScreenshot: "profile_12b_support_scrolled"
+      - back
+      - waitForAnimationToEnd
+      - back
+
+# ============================================================
+# CLEANUP - Return Home & Logout
+# ============================================================
+
+# Return to home
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "99_back_to_home"
+
+# Logout
+- runFlow:
+    when:
+      visible: "Devices"
+    commands:
+      - tapOn: 
+          point: "92%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,15%"
+      - waitForAnimationToEnd
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Are you sure you want to Log Out?"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Login|Sign In"
+      - takeScreenshot: "99_logged_out"

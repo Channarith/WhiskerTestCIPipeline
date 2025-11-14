@@ -1,0 +1,391 @@
+appId: com.whisker.android
+---
+# INSIGHTS & ANALYTICS TESTS - EXHAUSTIVE
+# Generated: 2025-11-12 22:39:08
+# Tests: Activity graphs, Health metrics, Analytics, Export data
+
+# ============================================================
+# INITIALIZATION - Clean State & Automatic Login
+# ============================================================
+# Ensures consistent starting point: clear state, launch app, auto-login
+
+- clearState: com.whisker.android
+- launchApp: com.whisker.android
+- waitForAnimationToEnd
+- takeScreenshot: "00_app_launched"
+
+# Handle onboarding/welcome screens (if first launch)
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Welcome"
+    commands:
+      - tapOn: "Get Started"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00a_onboarding_skipped"
+
+# Navigate to Login if we see Login/Register screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00b_login_screen"
+
+# Perform automatic login if login screen is visible
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - tapOn: "Enter Email"
+      - inputText: "test_h954605d@whiskertest.com"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Enter Password"
+      - inputText: "1IE0cyaSG6#y"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00c_login_submitted"
+      
+      # Handle Google Password Manager (tap "Not now" / deny)
+      - runFlow:
+          when:
+            visible: "Save|Not now"
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: com.android.permissioncontroller:id/permission_deny_button
+                commands:
+                  - tapOn:
+                      id: com.android.permissioncontroller:id/permission_deny_button
+                  - waitForAnimationToEnd
+
+# Handle notification permission popup (tap "Allow")
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - waitForAnimationToEnd
+      - takeScreenshot: "00d_notifications_allowed"
+
+# Wait for home screen to fully load
+- waitForAnimationToEnd
+- takeScreenshot: "00e_ready_home_screen"
+
+
+# ============================================================
+# START OF ACTUAL TEST
+# ============================================================
+
+- takeScreenshot: "insights_00_home_start"
+
+# ============================================================
+# TEST 1: Navigate to Insights Tab
+# ============================================================
+- tapOn: "Insights\nTab 2 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "insights_01_tab_opened"
+
+# ============================================================
+# TEST 2: Explore Main Dashboard
+# ============================================================
+# Scroll to see all widgets
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "insights_02_scroll_1"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "insights_03_scroll_2"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "insights_04_scroll_3"
+
+# Scroll back to top
+- swipe:
+    direction: UP
+- waitForAnimationToEnd
+- takeScreenshot: "insights_05_back_to_top"
+
+# ============================================================
+# TEST 3: Explore Activity Graphs
+# ============================================================
+- runFlow:
+    when:
+      visible: "Activity|Activities|Usage"
+    commands:
+      - tapOn: "Activity"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_06_activity_graph"
+      
+      # Try different time periods
+      - runFlow:
+          when:
+            visible: "Day|Week|Month|Year"
+          commands:
+            - tapOn: "Week"
+            - waitForAnimationToEnd
+            - takeScreenshot: "insights_07_activity_week"
+            
+            - tapOn: "Month"
+            - waitForAnimationToEnd
+            - takeScreenshot: "insights_08_activity_month"
+      
+      - scroll
+      - takeScreenshot: "insights_09_activity_scrolled"
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 4: Explore Health Metrics
+# ============================================================
+- runFlow:
+    when:
+      visible: "Health|Wellness|Metrics"
+    commands:
+      - tapOn: "Health"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_10_health_metrics"
+      
+      - scroll
+      - takeScreenshot: "insights_11_health_scrolled"
+      
+      # Explore individual metrics
+      - runFlow:
+          when:
+            visible: "Weight|Bathroom"
+          commands:
+            - tapOn:
+                point: "50%,40%"
+            - waitForAnimationToEnd
+            - takeScreenshot: "insights_12_metric_details"
+            - back
+            - waitForAnimationToEnd
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 5: Check Analytics/Stats
+# ============================================================
+- runFlow:
+    when:
+      visible: "Analytics|Statistics|Stats"
+    commands:
+      - tapOn: "Analytics"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_13_analytics"
+      
+      - scroll
+      - takeScreenshot: "insights_14_analytics_scrolled"
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 6: Explore Reports
+# ============================================================
+- runFlow:
+    when:
+      visible: "Reports|Report"
+    commands:
+      - tapOn: "Reports"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_15_reports"
+      
+      - scroll
+      - takeScreenshot: "insights_16_reports_scrolled"
+      
+      # Try to access a report
+      - runFlow:
+          when:
+            visible: "View|Open|Download"
+          commands:
+            - tapOn: "View"
+            - waitForAnimationToEnd
+            - takeScreenshot: "insights_17_report_details"
+            - back
+            - waitForAnimationToEnd
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 7: Explore Data Export Options
+# ============================================================
+- runFlow:
+    when:
+      visible: "Export|Download|Share"
+    commands:
+      - tapOn: "Export"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_18_export_options"
+      
+      - scroll
+      - takeScreenshot: "insights_19_export_scrolled"
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 8: Check Pet-Specific Insights
+# ============================================================
+- runFlow:
+    when:
+      visible: "Pet|Select Pet"
+    commands:
+      - tapOn: "Pet"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_20_pet_selector"
+      
+      # Select first pet
+      - tapOn:
+          point: "50%,35%"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_21_pet_selected"
+
+# ============================================================
+# TEST 9: Explore Timeline/History
+# ============================================================
+- runFlow:
+    when:
+      visible: "Timeline|History"
+    commands:
+      - tapOn: "Timeline"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_22_timeline"
+      
+      - scroll
+      - takeScreenshot: "insights_23_timeline_scrolled"
+      
+      - scroll
+      - takeScreenshot: "insights_24_timeline_more"
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 10: Check Settings/Filters
+# ============================================================
+- runFlow:
+    when:
+      visible: "Filter|Settings|⚙"
+    commands:
+      - tapOn: "Filter"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_25_filters"
+      
+      - scroll
+      - takeScreenshot: "insights_26_filters_scrolled"
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 11: Explore Notifications/Alerts
+# ============================================================
+- runFlow:
+    when:
+      visible: "Notifications|Alerts|🔔"
+    commands:
+      - tapOn: "Notifications"
+      - waitForAnimationToEnd
+      - takeScreenshot: "insights_27_notifications"
+      
+      - scroll
+      - takeScreenshot: "insights_28_notifications_scrolled"
+      
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 12: Tap on Various Charts/Graphs
+# ============================================================
+# Try tapping on different sections of the insights screen
+- tapOn:
+    point: "30%,40%"
+- waitForAnimationToEnd
+- takeScreenshot: "insights_29_tap_area_1"
+- runFlow:
+    when:
+      visible: "Close|Back|X"
+    commands:
+      - back
+      - waitForAnimationToEnd
+
+- tapOn:
+    point: "70%,40%"
+- waitForAnimationToEnd
+- takeScreenshot: "insights_30_tap_area_2"
+- runFlow:
+    when:
+      visible: "Close|Back|X"
+    commands:
+      - back
+      - waitForAnimationToEnd
+
+- tapOn:
+    point: "50%,60%"
+- waitForAnimationToEnd
+- takeScreenshot: "insights_31_tap_area_3"
+- runFlow:
+    when:
+      visible: "Close|Back|X"
+    commands:
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 13: Final Full Scroll Exploration
+# ============================================================
+- takeScreenshot: "insights_32_final_view"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "insights_33_final_scroll_1"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "insights_34_final_scroll_2"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "insights_35_final_scroll_3"
+
+# ============================================================
+# CLEANUP - Return Home & Logout
+# ============================================================
+
+# Return to home
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "99_back_to_home"
+
+# Logout
+- runFlow:
+    when:
+      visible: "Devices"
+    commands:
+      - tapOn: 
+          point: "92%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,15%"
+      - waitForAnimationToEnd
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Are you sure you want to Log Out?"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Login|Sign In"
+      - takeScreenshot: "99_logged_out"

@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Medium_Phone_API_35" tests="1" failures="0" time="65.0">
+    <testcase id="whisker_stress_test" name="whisker_stress_test" classname="whisker_stress_test" time="65.0" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

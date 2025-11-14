@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Medium_Phone_API_35" tests="1" failures="0" time="172.0">
+    <testcase id="04_device_management_tests" name="04_device_management_tests" classname="04_device_management_tests" time="172.0" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

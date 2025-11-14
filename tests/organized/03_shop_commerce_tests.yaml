@@ -1,0 +1,224 @@
+appId: com.whisker.android
+---
+# SHOP & COMMERCE TESTS
+# Generated: 2025-11-12 22:39:08
+# Tests: Shop navigation, Accept cookies, Browse products, Categories
+
+# ============================================================
+# INITIALIZATION - Clean State & Automatic Login
+# ============================================================
+# Ensures consistent starting point: clear state, launch app, auto-login
+
+- clearState: com.whisker.android
+- launchApp: com.whisker.android
+- waitForAnimationToEnd
+- takeScreenshot: "00_app_launched"
+
+# Handle onboarding/welcome screens (if first launch)
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Welcome"
+    commands:
+      - tapOn: "Get Started"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00a_onboarding_skipped"
+
+# Navigate to Login if we see Login/Register screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00b_login_screen"
+
+# Perform automatic login if login screen is visible
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - tapOn: "Enter Email"
+      - inputText: "test_h954605d@whiskertest.com"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Enter Password"
+      - inputText: "1IE0cyaSG6#y"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00c_login_submitted"
+      
+      # Handle Google Password Manager (tap "Not now" / deny)
+      - runFlow:
+          when:
+            visible: "Save|Not now"
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: com.android.permissioncontroller:id/permission_deny_button
+                commands:
+                  - tapOn:
+                      id: com.android.permissioncontroller:id/permission_deny_button
+                  - waitForAnimationToEnd
+
+# Handle notification permission popup (tap "Allow")
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - waitForAnimationToEnd
+      - takeScreenshot: "00d_notifications_allowed"
+
+# Wait for home screen to fully load
+- waitForAnimationToEnd
+- takeScreenshot: "00e_ready_home_screen"
+
+
+# ============================================================
+# START OF ACTUAL TEST
+# ============================================================
+
+- takeScreenshot: "shop_00_home_start"
+
+# ============================================================
+# TEST 1: Navigate to Shop Tab
+# ============================================================
+- tapOn: "Shop\nTab 5 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "shop_01_tab_opened"
+
+# ============================================================
+# TEST 2: Handle Cookie Consent
+# ============================================================
+- runFlow:
+    when:
+      visible: "Accept|Accept Cookies|Accept All|OK"
+    commands:
+      - takeScreenshot: "shop_02_cookie_banner"
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "shop_03_cookies_accepted"
+
+# ============================================================
+# TEST 3: Browse Shop Home
+# ============================================================
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "shop_04_scroll_1"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "shop_05_scroll_2"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "shop_06_scroll_3"
+
+# Scroll back up
+- swipe:
+    direction: UP
+- waitForAnimationToEnd
+- takeScreenshot: "shop_07_back_to_top"
+
+# ============================================================
+# TEST 4: Explore Categories
+# ============================================================
+- runFlow:
+    when:
+      visible: "Categories|Category|Browse"
+    commands:
+      - tapOn: "Categories"
+      - waitForAnimationToEnd
+      - takeScreenshot: "shop_08_categories"
+      - scroll
+      - takeScreenshot: "shop_09_categories_scrolled"
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 5: View Product Details
+# ============================================================
+# Tap on first visible product
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- takeScreenshot: "shop_10_product_details"
+
+# Scroll through product details
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "shop_11_product_details_scrolled"
+
+# Check product images/reviews
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "shop_12_product_more_info"
+
+# Go back to shop
+- back
+- waitForAnimationToEnd
+- takeScreenshot: "shop_13_back_to_shop"
+
+# ============================================================
+# TEST 6: Check Shopping Cart
+# ============================================================
+- runFlow:
+    when:
+      visible: "Cart|🛒|Basket"
+    commands:
+      - tapOn: "Cart"
+      - waitForAnimationToEnd
+      - takeScreenshot: "shop_14_cart"
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# TEST 7: Search Products
+# ============================================================
+- runFlow:
+    when:
+      visible: "Search|🔍"
+    commands:
+      - tapOn: "Search"
+      - waitForAnimationToEnd
+      - inputText: "litter"
+      - waitForAnimationToEnd
+      - takeScreenshot: "shop_15_search_results"
+      - hideKeyboard
+      - back
+      - waitForAnimationToEnd
+
+# ============================================================
+# CLEANUP - Return Home & Logout
+# ============================================================
+
+# Return to home
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "99_back_to_home"
+
+# Logout
+- runFlow:
+    when:
+      visible: "Devices"
+    commands:
+      - tapOn: 
+          point: "92%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,15%"
+      - waitForAnimationToEnd
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Are you sure you want to Log Out?"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Login|Sign In"
+      - takeScreenshot: "99_logged_out"

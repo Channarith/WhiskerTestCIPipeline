@@ -1,0 +1,250 @@
+appId: com.whisker.android
+---
+# DEVICE MANAGEMENT TESTS - EXHAUSTIVE
+# Generated: 2025-11-12 22:39:08
+# Tests: Litter-Robot, LitterHopper, Feeder-Robot setup
+# Strategy: Click everything until no more options available
+
+# ============================================================
+# INITIALIZATION - Clean State & Automatic Login
+# ============================================================
+# Ensures consistent starting point: clear state, launch app, auto-login
+
+- clearState: com.whisker.android
+- launchApp: com.whisker.android
+- waitForAnimationToEnd
+- takeScreenshot: "00_app_launched"
+
+# Handle onboarding/welcome screens (if first launch)
+- runFlow:
+    when:
+      visible: "Get Started|Start|Begin|Welcome"
+    commands:
+      - tapOn: "Get Started"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00a_onboarding_skipped"
+
+# Navigate to Login if we see Login/Register screen
+- runFlow:
+    when:
+      visible: "Login|Sign In"
+    commands:
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00b_login_screen"
+
+# Perform automatic login if login screen is visible
+- runFlow:
+    when:
+      visible: "Welcome to a better life with pets"
+    commands:
+      - tapOn: "Enter Email"
+      - inputText: "test_h954605d@whiskertest.com"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Enter Password"
+      - inputText: "1IE0cyaSG6#y"
+      - hideKeyboard
+      - waitForAnimationToEnd
+      
+      - tapOn: "Login"
+      - waitForAnimationToEnd
+      - takeScreenshot: "00c_login_submitted"
+      
+      # Handle Google Password Manager (tap "Not now" / deny)
+      - runFlow:
+          when:
+            visible: "Save|Not now"
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: com.android.permissioncontroller:id/permission_deny_button
+                commands:
+                  - tapOn:
+                      id: com.android.permissioncontroller:id/permission_deny_button
+                  - waitForAnimationToEnd
+
+# Handle notification permission popup (tap "Allow")
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - waitForAnimationToEnd
+      - takeScreenshot: "00d_notifications_allowed"
+
+# Wait for home screen to fully load
+- waitForAnimationToEnd
+- takeScreenshot: "00e_ready_home_screen"
+
+
+# ============================================================
+# START OF ACTUAL TEST
+# ============================================================
+
+- takeScreenshot: "devices_00_home_start"
+
+# ============================================================
+# TEST 1: Navigate to Devices Tab
+# ============================================================
+- tapOn: "Devices\nTab 3 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "devices_01_tab_opened"
+
+# ============================================================
+# TEST 2: Explore Litter-Robot Setup
+# ============================================================
+- runFlow:
+    when:
+      visible: "Add a Device"
+    commands:
+      - tapOn: "Add a Device"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_02_add_device_screen"
+
+# Look for Litter-Robot option
+- runFlow:
+    when:
+      visible: "Litter-Robot|Litter Robot"
+    commands:
+      - takeScreenshot: "devices_03_litter_robot_option"
+      - tapOn: "Litter-Robot"
+      - waitForAnimationToEnd
+      - tapOn: "Litter-Robot 4"
+      - waitForAnimationToEnd
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - tapOn: "Unsure"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_04_litter_robot_selected"
+      
+            # Go through setup screens
+      - assertVisible: "Setup Mode"
+      - tapOn: "Is the Connect light flashing yellow?.*"
+      - waitForAnimationToEnd
+      #- tapOn:
+      #    point: "50%,53%"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_10_lr_step1"
+      
+      # Screen 2
+      - assertVisible: "Scan your QR Code"
+      - tapOn: "Ready to Scan"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_11_lr_step2"
+      - tapOn:
+          point: "92%,6%"
+      - waitForAnimationToEnd
+      - assertVisible: "Validation failed"
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_12_lr_step3"
+      - back
+      - back
+            
+
+# ============================================================
+# TEST 3: Explore Feeder-Robot Setup
+# ============================================================
+#- tapOn: "Devices\nTab 3 of 5"
+#- waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible: "Feeder-Robot|Feeder Robot"
+    commands:
+      - takeScreenshot: "devices_12_feeder_robot_option"
+      - tapOn: "Feeder-Robot"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_13_feeder_robot_selected"
+      
+            # Go through setup screens
+      - assertVisible: "Setup Mode"
+      - tapOn: "Is the Connect light flashing yellow?.*"
+      - waitForAnimationToEnd
+      #- tapOn:
+      #    point: "50%,53%"
+      - tapOn: "Next"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_13_lr_step1"
+      
+      # Screen 2
+      - assertVisible: "Scan your QR Code"
+      - tapOn: "Ready to Scan"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_14_lr_step2"
+      - tapOn:
+          point: "92%,6%"
+      - waitForAnimationToEnd
+      - assertVisible: "Validation failed"
+      - tapOn: "OK"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_15_lr_step3"
+      - back
+      - back    
+
+# ============================================================
+# TEST 4: Explore LitterHopper Setup
+# ============================================================
+#- tapOn: "Devices\nTab 3 of 5"
+#- waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible: "LitterHopper|Litter Hopper"
+    commands:
+      - takeScreenshot: "devices_19_litterhopper_option"
+      - tapOn: "LitterHopper"
+      - waitForAnimationToEnd
+      - takeScreenshot: "devices_20_litterhopper_selected"
+      
+            # Go through setup screens
+      - assertVisible: "Setup Mode"
+      - assertVisible: "No robots available"
+      - back
+      - waitForAnimationToEnd
+      - back
+# ============================================================
+# TEST 5: Explore All Device Options on Main Screen
+# ============================================================
+- takeScreenshot: "devices_25_main_screen"
+
+# ============================================================
+# CLEANUP - Return Home & Logout
+# ============================================================
+
+# Return to home
+- tapOn: "Home\nTab 1 of 5"
+- waitForAnimationToEnd
+- takeScreenshot: "99_back_to_home"
+
+# Logout
+- runFlow:
+    when:
+      visible: "Devices"
+    commands:
+      - tapOn: 
+          point: "92%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,15%"
+      - waitForAnimationToEnd
+      - tapOn: "Log Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Are you sure you want to Log Out?"
+      - tapOn: "Yes, Log Me Out"
+      - waitForAnimationToEnd
+      - assertVisible: "Login|Sign In"
+      - takeScreenshot: "99_logged_out"

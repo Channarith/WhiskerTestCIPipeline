@@ -290,7 +290,10 @@ def create_register_test(email, password, first_name, last_name, platform='andro
 - takeScreenshot: "ui_13_android_home"
 """
     
-    filename = f"generated_register_test_{platform}.yaml"
+    # Ensure tests/registration directory exists
+    os.makedirs("tests/registration", exist_ok=True)
+    
+    filename = f"tests/registration/generated_register_test_{platform}.yaml"
     with open(filename, 'w') as f:
         f.write(yaml_content)
     
@@ -298,7 +301,7 @@ def create_register_test(email, password, first_name, last_name, platform='andro
 
 def create_login_test(email, password):
     """Generate Maestro YAML for login"""
-    yaml_content = f"""appId: {PACKAGE_NAME}
+    yaml_content = f"""appId: {ANDROID_PACKAGE_NAME}
 ---
 # Smart Login Test
 # Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -321,17 +324,17 @@ def create_login_test(email, password):
 # Check if already on login screen
 - runFlow:
     when:
-      visible: "Email|Password|Sign in to your account"
+      visible: "Welcome to a better life with pets"
     commands:
       - takeScreenshot: "02b_already_on_login"
 
 # Fill in Email
-- tapOn: "Email|email|Username"
+- tapOn: "Enter Email|email|Username"
 - inputText: "{email}"
 - hideKeyboard
 
 # Fill in Password
-- tapOn: "Password"
+- tapOn: "Enter Password"
 - inputText: "{password}"
 - hideKeyboard
 - takeScreenshot: "03_credentials_entered"
@@ -348,10 +351,21 @@ def create_login_test(email, password):
     commands:
       - takeScreenshot: "error_invalid_credentials"
 
+# Handle notification permission popup (auto-click Allow)
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - takeScreenshot: "12_notification_popup"
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_button
+      - takeScreenshot: "12b_notification_allowed"
+
+    
 # Verify success (optional - don't fail test if not found)
 - runFlow:
     when:
-      visible: "Welcome|Home|Dashboard|Login"
+      visible: "Welcome|Home|Dashboard|Login|Devices"
     commands:
       - takeScreenshot: "05_login_success"
 
@@ -359,7 +373,10 @@ def create_login_test(email, password):
 - takeScreenshot: "06_final_screen"
 """
     
-    filename = "generated_login_test.yaml"
+    # Ensure tests/registration directory exists
+    os.makedirs("tests/registration", exist_ok=True)
+    
+    filename = "tests/registration/generated_login_test.yaml"
     with open(filename, 'w') as f:
         f.write(yaml_content)
     
@@ -373,7 +390,7 @@ def run_maestro_test(yaml_file, platform='android'):
     os.makedirs(debug_dir, exist_ok=True)
     
     # Launch app manually before running test (workaround for TCP forwarding issue)
-    print(f"\n🧪 Running Maestro test: {yaml_file}")
+    print(f"\n🧪 Running Maestro test: {os.path.basename(yaml_file)}")
     print("-" * 60)
     print(f"📱 Preparing Whisker app ({platform.upper()})...")
     
